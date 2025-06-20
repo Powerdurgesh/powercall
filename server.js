@@ -1,13 +1,3 @@
-const express = require('express');
-const http = require('http');
-const socketIO = require('socket.io');
-const multer = require('multer');
-const fs = require('fs');
-
-// Create uploads folder if missing
-if (!fs.existsSync('uploads')) {
-  fs.mkdirSync('uploads');
-}
 
 const express = require('express');
 const http = require('http');
