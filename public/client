@@ -1,0 +1,31 @@
+const socket = io();
+
+document.getElementById('messageInput').addEventListener('keypress', e => {
+  if (e.key === 'Enter') sendMessage();
+});
+
+function sendMessage() {
+  const input = document.getElementById('messageInput');
+  socket.emit('chatMessage', { text: input.value });
+  input.value = '';
+}
+
+socket.on('chatMessage', data => {
+  const messages = document.getElementById('messages');
+  messages.innerHTML += `<div>${data.text}</div>`;
+});
+
+document.getElementById('fileInput').addEventListener('change', async e => {
+  const form = new FormData();
+  form.append('file', e.target.files[0]);
+  const res = await fetch('/upload', { method: 'POST', body: form });
+  const { fileUrl } = await res.json();
+  socket.emit('chatMessage', { text: `<a href="${fileUrl}" target="_blank">📎 File</a>` });
+});
+
+// Basic WebRTC placeholder
+let localStream;
+async function startVideoCall() {
+  localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+  document.getElementById('localVideo').srcObject = localStream;
+}
