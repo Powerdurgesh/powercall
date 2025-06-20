@@ -1,0 +1,15 @@
+body {
+  font-family: sans-serif;
+}
+#chat-container {
+  max-width: 500px;
+  margin: auto;
+  border: 1px solid #ccc;
+  padding: 10px;
+}
+#messages {
+  height: 300px;
+  overflow-y: scroll;
+  border-bottom: 1px solid #ccc;
+  margin-bottom: 10px;
+}
