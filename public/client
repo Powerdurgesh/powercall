@@ -1,0 +1,63 @@
+const socket = io();
+let username = "";
+let peer = new Peer();
+let localStream;
+
+function joinChat() {
+  username = document.getElementById('username').value.trim();
+  if (!username) return;
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('chatContainer').style.display = 'block';
+  socket.emit('join', username);
+}
+
+document.getElementById('messageInput').addEventListener('keypress', e => {
+  if (e.key === 'Enter') sendMessage();
+});
+
+function sendMessage() {
+  const input = document.getElementById('messageInput');
+  const text = input.value;
+  if (text.trim() !== '') {
+    socket.emit('chatMessage', { text });
+    input.value = '';
+  }
+}
+
+socket.on('chatMessage', data => {
+  const msgBox = document.getElementById('messages');
+  msgBox.innerHTML += `<div><strong>${data.user}:</strong> ${data.text}</div>`;
+  msgBox.scrollTop = msgBox.scrollHeight;
+});
+
+document.getElementById('fileInput').addEventListener('change', async e => {
+  const file = e.target.files[0];
+  const form = new FormData();
+  form.append('file', file);
+  const res = await fetch('/upload', { method: 'POST', body: form });
+  const { fileUrl, originalName } = await res.json();
+  socket.emit('chatMessage', { text: `<a href="${fileUrl}" target="_blank">📎 ${originalName}</a>` });
+});
+
+navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then(stream => {
+  localStream = stream;
+  document.getElementById('localVideo').srcObject = stream;
+
+  peer.on('call', call => {
+    call.answer(localStream);
+    call.on('stream', remoteStream => {
+      document.getElementById('remoteVideo').srcObject = remoteStream;
+    });
+  });
+
+  peer.on('open', id => {
+    socket.emit('chatMessage', { text: `Ready for calls! My ID: ${id}` });
+  });
+});
+
+function callPeer(peerId) {
+  const call = peer.call(peerId, localStream);
+  call.on('stream', remoteStream => {
+    document.getElementById('remoteVideo').srcObject = remoteStream;
+  });
+}
